@@ -38,9 +38,14 @@ yarn-error.log*
 .env.development
 .env.*.local
 
+# 环境变量模板（保留，提交到 GitHub）
+!.env.example
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/lib/generated/prisma
