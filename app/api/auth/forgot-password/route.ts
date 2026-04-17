@@ -15,27 +15,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "邮箱格式不正确" }, { status: 400 });
   }
 
+  // 检查邮箱是否存在
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    // 为了安全，不告诉用户邮箱不存在，统一返回成功
+    return NextResponse.json({
+      success: true,
+      message: "如果邮箱已注册，验证码已发送",
+    });
+  }
+
   const code = generateCode();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-  // 1. 删除旧的验证码
+  // 删除旧的验证码
   await prisma.verificationCode.deleteMany({ where: { email } });
 
-  // 2. 存储新验证码到数据库
+  // 存储新验证码
   await prisma.verificationCode.create({
     data: { email, code, expiresAt },
   });
 
-  // 3. 用 Resend 发送真实邮件
+  // 发送邮件
   try {
-    const { error } = await resend.emails.send({
-      from: "你的应用名 <onboarding@resend.dev>", // 开发阶段用这个
+    await resend.emails.send({
+      from: "你的应用名 <onboarding@resend.dev>",
       to: email,
-      subject: "【AI 内容生成器】登录验证码",
+      subject: "【AI 内容生成器】重置密码验证码",
       html: `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
-          <h2 style="color: #333;">验证码登录</h2>
-          <p>您正在登录 AI 内容生成器，验证码是：</p>
+          <h2 style="color: #333;">重置密码</h2>
+          <p>您正在申请重置密码，验证码是：</p>
           <div style="font-size: 32px; font-weight: bold; background: #f0f0f0; display: inline-block; padding: 12px 24px; border-radius: 8px; letter-spacing: 4px;">
             ${code}
           </div>
@@ -45,15 +58,10 @@ export async function POST(req: Request) {
       `,
     });
 
-    if (error) {
-      console.error("Resend 发送失败:", error);
-      return NextResponse.json({ error: "邮件发送失败" }, { status: 500 });
-    }
-
-    console.log(`[邮件已发送] ${email} -> ${code}`);
-    return NextResponse.json({ success: true, message: "验证码已发送到邮箱" });
+    console.log(`[重置密码] ${email} -> ${code}`);
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("发送错误:", error);
-    return NextResponse.json({ error: "邮件服务异常" }, { status: 500 });
+    console.error("发送失败:", error);
+    return NextResponse.json({ error: "邮件发送失败" }, { status: 500 });
   }
 }

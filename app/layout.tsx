@@ -1,6 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
+import NavBar from "./components/NavBar";
 
 export const metadata: Metadata = {
   title: "AI 内容生成工作台",
@@ -14,7 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <NavBar />
+        {children}
+      </body>
     </html>
   );
 }

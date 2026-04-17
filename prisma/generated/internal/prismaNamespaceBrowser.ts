@@ -55,7 +55,8 @@ export const ModelName = {
   Session: 'Session',
   Post: 'Post',
   Generation: 'Generation',
-  VerificationCode: 'VerificationCode'
+  VerificationCode: 'VerificationCode',
+  PasswordResetToken: 'PasswordResetToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -77,6 +78,8 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  password: 'password',
+  role: 'role',
   createdAt: 'createdAt'
 } as const
 
@@ -127,6 +130,17 @@ export const VerificationCodeScalarFieldEnum = {
 } as const
 
 export type VerificationCodeScalarFieldEnum = (typeof VerificationCodeScalarFieldEnum)[keyof typeof VerificationCodeScalarFieldEnum]
+
+
+export const PasswordResetTokenScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  token: 'token',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt'
+} as const
+
+export type PasswordResetTokenScalarFieldEnum = (typeof PasswordResetTokenScalarFieldEnum)[keyof typeof PasswordResetTokenScalarFieldEnum]
 
 
 export const SortOrder = {

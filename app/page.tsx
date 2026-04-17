@@ -1,178 +1,107 @@
 // app/page.tsx
 "use client";
 
-import { useState } from "react";
-import { Sparkles, Copy, Check, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+const features = [
+  {
+    title: "📝 标题生成",
+    description: "输入关键词，AI 自动生成 3 个吸引人的标题",
+    icon: "🎯",
+  },
+  {
+    title: "📄 文案撰写",
+    description: "生成 300 字左右的营销文案，语言生动有感染力",
+    icon: "✍️",
+  },
+  {
+    title: "🔍 SEO 描述",
+    description: "生成 150 字左右的 SEO 描述，自然包含关键词",
+    icon: "📈",
+  },
+  {
+    title: "💾 历史记录",
+    description: "所有生成内容自动保存，随时查看和复用",
+    icon: "📚",
+  },
+  {
+    title: "👥 团队协作",
+    description: "支持多人使用，各自管理自己的内容",
+    icon: "🤝",
+  },
+  {
+    title: "🔐 安全私密",
+    description: "数据隔离，只有你自己能看到生成的内容",
+    icon: "🛡️",
+  },
+];
 
-type ContentType = "title" | "content" | "seo";
-
-export default function Home() {
-  const [prompt, setPrompt] = useState("");
-  const [type, setType] = useState<ContentType>("title");
-  const [result, setResult] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const generateContent = async () => {
-    if (!prompt.trim()) return;
-
-    setLoading(true);
-    setResult("");
-
-    try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, type }),
-      });
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      while (reader) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value);
-        setResult((prev) => prev + chunk);
-      }
-    } catch (error) {
-      console.error(error);
-      setResult("生成失败，请重试");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(result);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
+export default function HomePage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm mb-4">
-            <Sparkles className="w-5 h-5 text-purple-500" />
-            <span className="text-sm font-medium text-gray-600">AI 驱动</span>
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            AI 内容生成工作台
+    <main className="pt-16">
+      {/* Hero 区域 */}
+      <section className="bg-gradient-to-br from-purple-50 to-white py-20">
+        <div className="max-w-4xl mx-auto text-center px-4">
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            AI 内容生成器
           </h1>
-          <p className="text-lg text-gray-600">
-            输入关键词，AI 帮你生成高质量标题、文案或 SEO 描述
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            输入关键词，AI 帮你生成高质量标题、营销文案和 SEO 描述
           </p>
+          <div className="flex gap-4 justify-center">
+            <a
+              href="/signin
+"
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+            >
+              立即体验
+            </a>
+            <a
+              href="#features"
+              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            >
+              了解更多
+            </a>
+          </div>
         </div>
+      </section>
 
-        {/* 输入卡片 */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>生成配置</CardTitle>
-            <CardDescription>选择内容类型，输入关键词</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Select
-              value={type}
-              onValueChange={(v) => setType(v as ContentType)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="选择内容类型" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="title">
-                  📝 标题生成 - 生成3个吸引人的标题
-                </SelectItem>
-                <SelectItem value="content">
-                  📄 文案撰写 - 生成300字营销文案
-                </SelectItem>
-                <SelectItem value="seo">
-                  🔍 SEO描述 - 生成150字SEO描述
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="输入关键词，比如：猫粮推荐、夏季连衣裙、新能源汽车..."
-              className="resize-none"
-              rows={3}
-            />
-
-            <Button
-              onClick={generateContent}
-              disabled={loading || !prompt.trim()}
-              className="w-full"
-              size="lg"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  生成中...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  生成内容
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* 结果卡片 */}
-        {result && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>生成结果</CardTitle>
-                <CardDescription>AI 生成的内容如下</CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={copyToClipboard}
-                className="gap-2"
+      {/* 功能展示区域 */}
+      <section id="features" className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            核心功能
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition"
               >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    已复制
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    复制
-                  </>
-                )}
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-muted rounded-lg p-5 whitespace-pre-wrap font-mono text-sm">
-                {result}
+                <div className="text-4xl mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600">{feature.description}</p>
               </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA 区域 */}
+      <section className="bg-purple-600 py-16">
+        <div className="max-w-4xl mx-auto text-center px-4">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            准备好提升内容创作效率了吗？
+          </h2>
+          <p className="text-purple-100 mb-8">立即开始使用 AI 生成高质量内容</p>
+          <a
+            href="/signin"
+            className="px-6 py-3 bg-white text-purple-600 rounded-lg hover:bg-gray-100 transition font-medium"
+          >
+            免费开始使用
+          </a>
+        </div>
+      </section>
     </main>
   );
 }
