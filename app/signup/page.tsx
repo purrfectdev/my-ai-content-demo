@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner"; // 改用 sonner
 
 export default function SignupPage() {
   const router = useRouter();
@@ -57,7 +58,9 @@ export default function SignupPage() {
           });
         }, 1000);
         setError(""); // 清除错误
-        alert("验证码已发送到邮箱，请查收");
+        toast.success("邮件已发送", {
+          description: `重置链接已发送到 ${email}`,
+        });
       } else {
         setError(data.error || "发送失败");
       }

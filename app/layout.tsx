@@ -1,6 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
 import NavBar from "./components/NavBar";
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body>
+        <Toaster position="top-center" richColors closeButton />
         <NavBar />
         {children}
       </body>
