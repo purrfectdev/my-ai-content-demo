@@ -4,6 +4,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface User {
   id: string;
@@ -23,11 +34,34 @@ export default function NavBar() {
     }
   }, []); // 只在组件挂载时读一次
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    router.push("/");
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleSignOut = async () => {
+    setShowConfirm(false); // 关闭弹窗
+    const loadingToast = toast.loading("正在退出...");
+
+    try {
+      const res = await fetch("/api/auth/signout", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (res.ok) {
+        toast.dismiss(loadingToast);
+        toast.success("已安全退出");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setTimeout(() => router.push("/signin"), 1000);
+      } else {
+        toast.dismiss(loadingToast);
+        toast.error("退出失败");
+      }
+    } catch {
+      toast.dismiss(loadingToast);
+      toast.error("网络错误");
+    }
   };
 
   return (
@@ -63,7 +97,7 @@ export default function NavBar() {
                 </Link>
               )}
               <button
-                onClick={handleLogout}
+                onClick={() => setShowConfirm(true)}
                 className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
                 退出
@@ -79,6 +113,26 @@ export default function NavBar() {
           )}
         </div>
       </div>
+
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认退出</AlertDialogTitle>
+            <AlertDialogDescription>
+              退出后需要重新登录才能继续使用。确定要退出吗？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSignOut}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              确定退出
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </nav>
   );
 }
