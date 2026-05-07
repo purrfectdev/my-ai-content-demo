@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import NavBar from "./components/NavBar";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "AI 内容生成工作台",
@@ -17,9 +18,10 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body>
-        <Toaster position="top-center" richColors closeButton />
+        <Providers>{children}</Providers>
+        {/* <Toaster position="top-center" richColors closeButton />
         <NavBar />
-        {children}
+        {children} */}
       </body>
     </html>
   );

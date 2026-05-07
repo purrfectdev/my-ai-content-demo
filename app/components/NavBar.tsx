@@ -1,10 +1,11 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/useAuthStore";
+import { FullscreenLoader } from "./FullscreenLoader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,29 +17,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface User {
-  id: string;
-  email: string;
-  role?: string;
-}
-
-export default function NavBar() {
+export default function Navbar() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    // 直接从 localStorage 读取用户信息
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      setUser(JSON.parse(stored));
-    }
-  }, []); // 只在组件挂载时读一次
-
+  const { isLoggedIn, user, clearAuth } = useAuthStore();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
-    setShowConfirm(false); // 关闭弹窗
-    const loadingToast = toast.loading("正在退出...");
+    setShowConfirm(false);
+    setIsSigningOut(true);
 
     try {
       const res = await fetch("/api/auth/signout", {
@@ -49,71 +36,51 @@ export default function NavBar() {
       });
 
       if (res.ok) {
-        toast.dismiss(loadingToast);
         toast.success("已安全退出");
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setTimeout(() => router.push("/signin"), 1000);
+        clearAuth(); // 清除 Zustand 状态和 localStorage
+        setTimeout(() => router.push("/signin"), 500);
       } else {
-        toast.dismiss(loadingToast);
         toast.error("退出失败");
+        // setIsSigningOut(false);
       }
     } catch {
-      toast.dismiss(loadingToast);
       toast.error("网络错误");
+    } finally {
+      setIsSigningOut(false);
     }
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-6 py-4">
-      <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold text-purple-600">
+    <>
+      <nav className="flex items-center justify-between px-6 py-4 border-b">
+        <Link href="/" className="text-xl font-bold">
           AI 内容生成器
         </Link>
 
         <div className="flex items-center gap-4">
-          {user ? (
+          {isLoggedIn ? (
             <>
-              <span className="text-sm text-gray-600">
-                {user.email}
-                {user.role === "admin" && (
-                  <span className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">
-                    管理员
-                  </span>
-                )}
-              </span>
-              <Link
-                href="/dashboard"
-                className="text-sm text-gray-600 hover:text-purple-600"
-              >
-                工作台
-              </Link>
-              {user.role === "admin" && (
-                <Link
-                  href="/admin"
-                  className="text-sm text-gray-600 hover:text-purple-600"
-                >
-                  管理后台
-                </Link>
-              )}
+              <Link href="/dashboard">工作台</Link>
+              <Link href="/history">历史记录</Link>
+              <span className="text-sm text-gray-500">{user?.email}</span>
               <button
                 onClick={() => setShowConfirm(true)}
-                className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
+                disabled={isSigningOut}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white rounded-lg transition-colors"
               >
-                退出
+                退出登录
               </button>
             </>
           ) : (
-            <Link
-              href="/signin"
-              className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-            >
-              登录 / 注册
-            </Link>
+            <>
+              <Link href="/signin">登录</Link>
+              <Link href="/signup">注册</Link>
+            </>
           )}
         </div>
-      </div>
+      </nav>
 
+      {/* 二次确认弹窗 */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -133,6 +100,9 @@ export default function NavBar() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </nav>
+
+      {/* 全屏 Loading */}
+      <FullscreenLoader isLoading={isSigningOut} text="正在安全退出..." />
+    </>
   );
 }

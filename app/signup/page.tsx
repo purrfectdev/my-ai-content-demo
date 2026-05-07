@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner"; // 改用 sonner
 
+import { useAuthStore } from "@/store/useAuthStore";
+
 export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -71,6 +73,8 @@ export default function SignupPage() {
     }
   };
 
+  const setAuth = useAuthStore((state) => state.setAuth);
+
   // 注册
   const handleSignup = async () => {
     // 邮箱校验
@@ -106,8 +110,10 @@ export default function SignupPage() {
 
       if (res.ok) {
         // 注册成功，保存登录状态
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        // localStorage.setItem("token", data.token);
+        // localStorage.setItem("user", JSON.stringify(data.user));
+
+        setAuth(data.user, data.token);
         // 跳转到 dashboard
         window.location.href = "/dashboard";
       } else {
